@@ -1,0 +1,25 @@
+{
+  "name": "nodedb",
+  "description": "Test task microservice",
+  "author": "Denis Petrenko",
+  "license": "MIT",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "babel-node ./src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "amqplib": "^0.5.5",
+    "winston": "^3.2.1",
+    "mkdirp": "^1.0.4",
+    "@babel/core": "^7.9.0",
+    "@babel/cli": "^7.8.4",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.5",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-strict-mode": "^7.8.3",
+    "@babel/plugin-proposal-private-methods": "^7.8.3",
+    "@babel/plugin-transform-named-capturing-groups-regex": "^7.8.3"
+  }
+}

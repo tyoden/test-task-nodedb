@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Test task</title>
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
+      background-color: #f5f5f5;
+    }
+
+    .form {
+      width: 100%;
+      max-width: 330px;
+      padding: 15px;
+      margin: auto;
+    }
+    .form .checkbox {
+      font-weight: 400;
+    }
+    .form .form-control {
+      position: relative;
+      box-sizing: border-box;
+      height: auto;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .form .form-control:focus {
+      z-index: 2;
+    }
+    .form input[type="email"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    .form input[type="password"] {
+      margin-bottom: 10px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  </style>
+</head>
+
+<div class="container">
+  <div class="row set-form">
+    <div class="col-6">
+      <form class="form">
+        <label>Set</label>
+        <input type="text" id="inputSetKey" name="key" class="form-control" placeholder="Key">
+        <input type="text" id="inputSetValue" name="value" class="form-control" placeholder="Value">
+        <br />
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="col-6">
+      <br>
+      <br>
+      <div class="alert alert-success d-none" role="alert">
+        Value set successful
+      </div>
+      <div class="alert alert-danger d-none" role="alert">
+        Something went wrong
+      </div>
+      <div class="alert alert-warning d-none" role="alert">
+        Value set exception
+      </div>
+    </div>
+  </div>
+  <div class="row get-form">
+    <div class="col-6">
+      <form class="form">
+        <label>Get</label>
+        <input type="text" id="inputGetKey" name="key" class="form-control" placeholder="Key">
+        <br />
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="col-6">
+      <br>
+      <br>
+      <div class="alert alert-success d-none" role="alert"></div>
+      <div class="alert alert-danger d-none" role="alert">
+        Get value exception
+      </div>
+      <div class="alert alert-warning d-none" role="alert">
+        Value not found
+      </div>
+    </div>
+  </div>
+  <div class="row remove-form">
+    <div class="col-6">
+      <form class="form">
+        <label>Remove</label>
+        <input type="text" id="inputRemoveKey" name="key" class="form-control" placeholder="Key">
+        <br />
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="col-6">
+      <br>
+      <br>
+      <div class="alert alert-success d-none" role="alert">
+        Value remove successful
+      </div>
+      <div class="alert alert-danger d-none" role="alert">
+        Something went wrong
+      </div>
+      <div class="alert alert-warning d-none" role="alert">
+        Value remove exception
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (async function () {
+    const [setForm, getForm, removeForm] = document.querySelectorAll("form");
+    const setAlerts = document.querySelectorAll(".set-form .alert");
+    const [setSuccess, setError] = setAlerts;
+    const getAlerts = document.querySelectorAll(".get-form .alert");
+    const [getSuccess, getError, getWarn] = getAlerts;
+    const removeAlerts = document.querySelectorAll(".remove-form .alert");
+    const [removeSuccess, removeError] = removeAlerts;
+
+    const [setFormKeyInput, setFormValueInput] = setForm.querySelectorAll("input");
+    const getFormKeyInput = getForm.querySelector("input");
+    const removeFormKeyInput = removeForm.querySelector("input");
+
+    setForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      setAlerts.forEach(elem => elem.classList.remove("d-block"));
+      const data = {
+        key: setFormKeyInput.value,
+        value: setFormValueInput.value
+      }
+      const response = await fetch('/db', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      const statusAlerts = { 201: setSuccess }
+      const alert = statusAlerts[response.status] || setError;
+      alert.classList.add("d-block");
+    });
+
+    getForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      getAlerts.forEach(elem => elem.classList.remove("d-block"));
+      const data = { key: getFormKeyInput.value }
+      const response = await fetch('/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      const statusAlerts = { 200: getSuccess, 404: getWarn }
+      const alert = statusAlerts[response.status] || getError;
+      if (response.status !== 200) {
+        alert.classList.add("d-block");
+        return;
+      }
+      const text = await response.text()
+      alert.innerText = `Value is "${text}"`;
+      alert.classList.add("d-block");
+    });
+
+    removeForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      removeAlerts.forEach(elem => elem.classList.remove("d-block"));
+      const data = { key: removeFormKeyInput.value }
+      const response = await fetch('/db', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      const statusAlerts = { 204: removeSuccess }
+      const alert = statusAlerts[response.status] || removeError;
+      alert.classList.add("d-block");
+    });
+
+  })();
+</script>
+</body>
+</html>

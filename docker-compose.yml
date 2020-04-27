@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  nodedb:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    working_dir: /usr/app
+    volumes:
+      - ./app:/usr/app
+      - dbdata:/usr/app-data
+    networks:
+      - app-network
+    environment:
+      - MESSENGER_URL=amqp://rabbitmq
+      - INCOME_QUEUE=db_request
+      - OUTCOME_QUEUE=db_response
+      - DATA_DIR=/usr/app-data
+    links:
+      - rabbitmq
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    working_dir: /usr/app
+    volumes:
+      - ./gateway:/usr/app
+    ports:
+      - "80:3000"
+    networks:
+      - app-network
+    environment:
+      - PORT=3000
+      - MESSENGER_URL=amqp://rabbitmq
+      - INCOME_QUEUE=db_response
+      - OUTCOME_QUEUE=db_request
+    links:
+      - rabbitmq
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.8.3
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
